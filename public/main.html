@@ -1,0 +1,313 @@
+<!--<!DOCTYPE html>
+<html>
+<head>
+  <title>도서관 웹페이지</title>
+  <style>
+    /* CSS 스타일을 작성합니다. */
+  </style>
+</head>
+<body>
+  <h1>도서관 웹페이지</h1>
+
+  <h2>도서 검색</h2>
+  <form id="search-form">
+    <input type="text" id="search-input" placeholder="도서명을 입력하세요">
+    <button type="submit">검색</button>
+  </form>
+  <div id="search-results">
+     검색 결과를 표시할 영역 
+  </div>
+
+  <h2>도서 대출</h2>
+  <form id="borrow-form">
+    <input type="text" id="book-id" placeholder="도서 ID를 입력하세요">
+    <button type="submit">대출</button>
+  </form>
+
+  <h2>예약 도서 확인</h2>
+  <div id="reservation-list">
+     예약 도서 목록을 표시할 영역 
+  </div>
+
+  <script>
+    // 도서 검색
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // 폼 전송 방지
+
+      var searchInput = document.getElementById('search-input').value;
+
+      fetch('/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ keyword: searchInput })
+      })
+      .then(response => response.json())
+      .then(data => {
+        var searchResults = document.getElementById('search-results');
+        searchResults.innerHTML = '';
+
+        if (data.length === 0) {
+          searchResults.innerHTML = '검색 결과가 없습니다.';
+        } else {
+          data.forEach(item => {
+            var bookId = item.id;
+            var bookTitle = item.title;
+            var bookAuthor = item.author;
+
+            var listItem = document.createElement('div');
+            listItem.innerHTML = bookId + ' - ' + bookTitle + ' (' + bookAuthor + ') <button class="borrow-button" data-bookid="' + bookId + '">대출</button>';
+
+            searchResults.appendChild(listItem);
+          });
+
+          // 대출 버튼 클릭 이벤트 리스너 추가
+          var borrowButtons = document.getElementsByClassName('borrow-button');
+          Array.from(borrowButtons).forEach(button => {
+            button.addEventListener('click', function() {
+              var bookId = this.dataset.bookid;
+              borrowBook(bookId);
+            });
+          });
+        }
+      })
+      .catch(error => {
+        console.error('도서 검색에 실패했습니다:', error);
+      });
+    });
+
+    // 도서 대출
+    document.getElementById('borrow-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // 폼 전송 방지
+
+      var bookId = document.getElementById('book-id').value;
+      borrowBook(bookId);
+    });
+
+    // 예약 도서 확인
+    window.addEventListener('load', function() {
+      getReservationList();
+    });
+
+    // 도서 대출 함수
+    function borrowBook(bookId) {
+      fetch('/borrow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ bookId: bookId })
+})
+.then(response => response.json())
+.then(data => {
+if (data.message) {
+alert(data.message);
+}
+})
+.catch(error => {
+console.error('도서 대출에 실패했습니다:', error);
+});
+}
+
+
+// 예약 도서 목록 업데이트 함수
+function getReservationList() {
+  fetch('/reservation-list')
+  .then(response => response.json())
+  .then(data => {
+    var reservationList = document.getElementById('reservation-list');
+    reservationList.innerHTML = '';
+
+    if (data.length === 0) {
+      reservationList.innerHTML = '예약 도서가 없습니다.';
+    } else {
+      data.forEach(item => {
+        var bookTitle = item.bookTitle;
+        var borrowerName = item.borrowerName;
+
+        var listItem = document.createElement('div');
+        listItem.innerHTML = bookTitle + ' - ' + borrowerName;
+
+        reservationList.appendChild(listItem);
+      });
+    }
+  })
+  .catch(error => {
+    console.error('예약 도서 목록을 가져오는 데 실패했습니다:', error);
+  });
+}
+  </script>
+</body>
+</html>-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>도서관 웹페이지</title>
+  <style>
+    /* CSS 스타일을 작성합니다. */
+  </style>
+</head>
+<body>
+  <h1>도서관 웹페이지</h1>
+
+  <h2>도서 검색</h2>
+  <form id="search-form">
+    <input type="text" id="search-input" placeholder="도서명을 입력하세요">
+    <button type="submit">검색</button>
+  </form>
+  <div id="search-results">
+    <!-- 검색 결과를 표시할 영역 -->
+  </div>
+
+  <h2>도서 대출</h2>
+  <form id="borrow-form">
+    <input type="text" id="book-id" placeholder="도서 ID를 입력하세요">
+    <button type="submit">대출</button>
+  </form>
+
+  <h2>예약 도서 확인</h2>
+  <div id="reservation-list">
+    <!-- 예약 도서 목록을 표시할 영역 -->
+  </div>
+  <h2>도서 반납</h2>
+  <form id="return-form">
+    <input type="text" id="return-book-id" placeholder="반납할 도서 ID를 입력하세요">
+    <button type="submit">반납</button>
+  </form>
+  <script>
+    // 도서 대출 함수
+       // 도서 검색
+       document.getElementById('search-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // 폼 전송 방지
+
+      var searchInput = document.getElementById('search-input').value;
+
+      fetch('/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ keyword: searchInput })
+      })
+      .then(response => response.json())
+      .then(data => {
+        var searchResults = document.getElementById('search-results');
+        searchResults.innerHTML = '';
+
+        if (data.length === 0) {
+          searchResults.innerHTML = '검색 결과가 없습니다.';
+        } else {
+          data.forEach(item => {
+            var bookId = item.id;
+            var bookTitle = item.title;
+            var bookAuthor = item.author;
+
+            var listItem = document.createElement('div');
+            listItem.innerHTML = bookId + ' - ' + bookTitle + ' (' + bookAuthor + ') <button class="borrow-button" data-bookid="' + bookId + '">대출</button>';
+
+            searchResults.appendChild(listItem);
+          });
+
+          // 대출 버튼 클릭 이벤트 리스너 추가
+          var borrowButtons = document.getElementsByClassName('borrow-button');
+          Array.from(borrowButtons).forEach(button => {
+            button.addEventListener('click', function() {
+              var bookId = this.dataset.bookid;
+              borrowBook(bookId);
+            });
+          });
+        }
+      })
+      .catch(error => {
+        console.error('도서 검색에 실패했습니다:', error);
+      });
+    });
+    function borrowBook(bookId) {
+      fetch('/borrow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ bookId: bookId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+          // 예약 도서 목록 업데이트
+          getReservationList();
+        }
+      })
+      .catch(error => {
+        console.error('도서 대출 요청에 실패했습니다:', error);
+      });
+    }
+// 도서 반납 함수
+function returnBook(bookId) {
+  fetch('/return', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ bookId: bookId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) { // Check the success field
+      alert(data.message);
+      // 예약 도서 목록 업데이트
+      getReservationList();
+    } else {
+      console.error('도서 반납에 실패했습니다:', data.message);
+    }
+  })
+  .catch(error => {
+    console.error('도서 반납 요청에 실패했습니다:', error);
+  });
+}
+document.getElementById('return-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+  const bookId = document.getElementById('return-book-id').value;
+  returnBook(bookId);
+});
+    // 페이지 로드 시 예약 도서 목록 업데이트
+    getReservationList();
+
+    // 예약 도서 목록 조회
+    function getReservationList() {
+      fetch('/reservation-list')
+      .then(response => response.json())
+      .then(data => {
+        const reservationList = document.getElementById('reservation-list');
+        reservationList.innerHTML = '';
+
+        if (data.length === 0) {
+          reservationList.innerHTML = '<p>예약 도서가 없습니다.</p>';
+        } else {
+          const listItems = data.map(item => {
+            return `<li>${item.bookTitle} - ${item.borrowerName}</li>`;
+          });
+          reservationList.innerHTML = `<ul>${listItems.join('')}</ul>`;
+        }
+      })
+      .catch(error => {
+        console.error('예약 도서 목록 조회에 실패했습니다:', error);
+      });
+    }
+
+    // 도서 검색 기능
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      // 도서 검색 로직 구현
+    });
+
+    // 도서 대출 기능
+    document.getElementById('borrow-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const bookId = document.getElementById('book-id').value;
+      borrowBook(bookId);
+    });
+  </script>
+</body>
+</html>
